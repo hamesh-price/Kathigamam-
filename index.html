@@ -6,6 +6,20 @@
 <title>Kathirgamam Pada Yatra — Confirm Attendance</title>
 <link rel="stylesheet" href="style.css">
 <style>
+  body{
+    background:
+      linear-gradient(rgba(250,245,236,0.55), rgba(250,245,236,0.85)),
+      url('ktt.png') center center / cover no-repeat fixed,
+      var(--cream);
+  }
+  @media (max-width:768px){
+    body{
+      background:
+        linear-gradient(rgba(250,245,236,0.55), rgba(250,245,236,0.85)),
+        url('ktt-mobile.png') center center / cover no-repeat scroll,
+        var(--cream);
+    }
+  }
   .admin-link{
     position:fixed;
     top:18px;
@@ -55,11 +69,11 @@
       <form id="confirmForm">
         <div class="field">
           <label for="name">Full name</label>
-          <input type="text" id="name" placeholder="e.g. Hamesh Kumar" required>
+          <input type="text" id="name" placeholder=" Hamesh" required>
         </div>
         <div class="field">
           <label for="phone">Contact number</label>
-          <input type="tel" id="phone" placeholder="e.g. 077 1234567" required>
+          <input type="tel" id="phone" placeholder=" 0771234567" required>
         </div>
         <div class="field">
           <label for="members">Number of members coming (including you)</label>
