@@ -15,7 +15,7 @@ const firebaseConfig = {
 
 // Set your own admin password here (only gates the admin.html page in the browser —
 // see README for the security note on this).
-const ADMIN_PASSWORD = "kathirgamam2026";
+const ADMIN_PASSWORD = "hamesh2007";
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
