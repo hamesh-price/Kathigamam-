@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Kathirgamam Pada Yatra</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="gate" id="gate">
+    <p class="eyebrow">Admin</p>
+    <h1 style="font-size:26px;">Enter admin password</h1>
+    <div class="card">
+      <div class="field">
+        <input type="password" id="pwd" placeholder="Password">
+      </div>
+      <button class="btn-primary" id="unlockBtn">Unlock</button>
+      <div class="msg" id="gateMsg"></div>
+    </div>
+  </div>
+
+  <div class="wrap" id="dashboard" style="display:none;">
+    <p class="eyebrow">Kathirgamam Pada Yatra</p>
+    <h1>Admin dashboard</h1>
+    <p class="sub">All confirmations submitted through the registration form.</p>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="num" id="totalEntries">0</div>
+        <div class="label">Confirmations</div>
+      </div>
+      <div class="stat">
+        <div class="num" id="totalMembers">0</div>
+        <div class="label">Total members coming</div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <button class="btn-ghost" id="refreshBtn">Refresh</button>
+    </div>
+
+    <div id="tableWrap">
+      <table>
+        <thead>
+          <tr><th>Name</th><th>Phone</th><th>Members</th><th>Submitted</th><th></th></tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <div class="empty" id="emptyState" style="display:none;">No confirmations yet.</div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script>
+    const gate = document.getElementById('gate');
+    const dashboard = document.getElementById('dashboard');
+    const pwd = document.getElementById('pwd');
+    const gateMsg = document.getElementById('gateMsg');
+
+    document.getElementById('unlockBtn').addEventListener('click', tryUnlock);
+    pwd.addEventListener('keydown', (e) => { if(e.key === 'Enter') tryUnlock(); });
+
+    function tryUnlock(){
+      if(pwd.value === ADMIN_PASSWORD){
+        gate.style.display = 'none';
+        dashboard.style.display = 'block';
+        loadData();
+      }else{
+        gateMsg.textContent = 'Incorrect password.';
+        gateMsg.className = 'msg show err';
+      }
+    }
+
+    const rowsEl = document.getElementById('rows');
+    const emptyState = document.getElementById('emptyState');
+    const totalEntriesEl = document.getElementById('totalEntries');
+    const totalMembersEl = document.getElementById('totalMembers');
+
+    async function loadData(){
+      rowsEl.innerHTML = '';
+      try{
+        const snap = await db.collection('confirmations').orderBy('timestamp', 'desc').get();
+        if(snap.empty){
+          emptyState.style.display = 'block';
+          totalEntriesEl.textContent = '0';
+          totalMembersEl.textContent = '0';
+          return;
+        }
+        emptyState.style.display = 'none';
+
+        let totalMembers = 0;
+        snap.forEach(doc => {
+          const d = doc.data();
+          totalMembers += (d.members || 0);
+          const when = d.timestamp ? d.timestamp.toDate().toLocaleString() : '—';
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td data-label="Name">${escapeHtml(d.name)}</td>
+            <td data-label="Phone">${escapeHtml(d.phone)}</td>
+            <td data-label="Members"><span class="pill">${d.members}</span></td>
+            <td data-label="Submitted">${when}</td>
+            <td data-label=""><button class="del" data-id="${doc.id}">Remove</button></td>
+          `;
+          rowsEl.appendChild(tr);
+        });
+
+        totalEntriesEl.textContent = snap.size;
+        totalMembersEl.textContent = totalMembers;
+
+        document.querySelectorAll('.del').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            if(confirm('Remove this confirmation?')){
+              await db.collection('confirmations').doc(btn.dataset.id).delete();
+              loadData();
+            }
+          });
+        });
+      }catch(err){
+        console.error(err);
+        emptyState.style.display = 'block';
+        emptyState.textContent = 'Could not load data. Check your Firebase setup and internet connection.';
+      }
+    }
+
+    function escapeHtml(str){
+      const div = document.createElement('div');
+      div.textContent = str || '';
+      return div.innerHTML;
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', loadData);
+  </script>
+</body>
+</html>

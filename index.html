@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kathirgamam Pada Yatra — Confirm Attendance</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="wrap">
+    <p class="eyebrow">Kathirgamam Pada Yatra</p>
+    <h1>Confirm your attendance</h1>
+    <p class="sub">Enter your name, contact number, and how many members are joining from your side. This helps us plan transport and arrangements for the group.</p>
+
+    <svg class="divider" viewBox="0 0 600 34" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0 17 C 100 5, 140 5, 180 17 C 220 29, 260 29, 300 17 C 340 5, 380 5, 420 17 C 460 29, 500 29, 540 17 C 560 11, 580 11, 600 17" />
+    </svg>
+
+    <div class="card">
+      <form id="confirmForm">
+        <div class="field">
+          <label for="name">Full name</label>
+          <input type="text" id="name" placeholder="e.g. Hamesh Kumar" required>
+        </div>
+        <div class="field">
+          <label for="phone">Contact number</label>
+          <input type="tel" id="phone" placeholder="e.g. 077 1234567" required>
+        </div>
+        <div class="field">
+          <label for="members">Number of members coming (including you)</label>
+          <input type="number" id="members" min="1" value="1" required>
+          <p class="hint">Count everyone travelling with you, yourself included.</p>
+        </div>
+        <button type="submit" class="btn-primary" id="submitBtn">Confirm attendance</button>
+        <div class="msg" id="msg"></div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script>
+    const form = document.getElementById('confirmForm');
+    const msg = document.getElementById('msg');
+    const submitBtn = document.getElementById('submitBtn');
+
+    function showMsg(text, ok){
+      msg.textContent = text;
+      msg.className = 'msg show ' + (ok ? 'ok' : 'err');
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const members = parseInt(document.getElementById('members').value, 10);
+
+      if(!name || !phone || !members || members < 1){
+        showMsg('Please fill in all fields correctly.', false);
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+
+      try{
+        await db.collection('confirmations').add({
+          name, phone, members,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        showMsg('Thank you! Your attendance is confirmed.', true);
+        form.reset();
+        document.getElementById('members').value = 1;
+      }catch(err){
+        console.error(err);
+        showMsg('Something went wrong. Please check your connection and try again.', false);
+      }finally{
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Confirm attendance';
+      }
+    });
+  </script>
+</body>
+</html>
