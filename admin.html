@@ -1,18 +1,26 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin — Kathirgamam Pada Yatra</title>
 <link rel="stylesheet" href="style.css">
-
-
-    body{
+<style>
+  body{
     background:
       linear-gradient(rgba(250,245,236,0.55), rgba(250,245,236,0.85)),
-      url('ktt.jpg') center center / cover no-repeat fixed,
+      url('ktt.png') center center / cover no-repeat fixed,
       var(--cream);
   }
+  @media (max-width:768px){
+    body{
+      background:
+        linear-gradient(rgba(250,245,236,0.55), rgba(250,245,236,0.85)),
+        url('ktt.png') center center / cover no-repeat scroll,
+        var(--cream);
+    }
+  }
+</style>
 </head>
 <body>
 
@@ -89,49 +97,71 @@
 
     async function loadData(){
       rowsEl.innerHTML = '';
+      let snap;
+
+      // Try the ordered query first; if that fails for any reason (e.g. a doc
+      // with a missing/pending timestamp), fall back to an unordered read so
+      // data still shows up rather than the page going blank.
       try{
-        const snap = await db.collection('confirmations').orderBy('timestamp', 'desc').get();
-        if(snap.empty){
+        snap = await db.collection('confirmations').orderBy('timestamp', 'desc').get();
+      }catch(err){
+        console.warn('Ordered query failed, falling back to unordered read:', err);
+        try{
+          snap = await db.collection('confirmations').get();
+        }catch(err2){
+          console.error(err2);
           emptyState.style.display = 'block';
-          totalEntriesEl.textContent = '0';
-          totalMembersEl.textContent = '0';
+          emptyState.textContent = 'Could not load data — ' + (err2.message || err2);
           return;
         }
-        emptyState.style.display = 'none';
+      }
 
-        let totalMembers = 0;
-        snap.forEach(doc => {
+      if(snap.empty){
+        emptyState.style.display = 'block';
+        emptyState.textContent = 'No confirmations yet.';
+        totalEntriesEl.textContent = '0';
+        totalMembersEl.textContent = '0';
+        return;
+      }
+      emptyState.style.display = 'none';
+
+      let totalMembers = 0;
+      let rendered = 0;
+      snap.forEach(doc => {
+        try{
           const d = doc.data();
-          totalMembers += (d.members || 0);
-          const when = d.timestamp ? d.timestamp.toDate().toLocaleString() : '—';
+          const memberCount = Number(d.members) || 0;
+          totalMembers += memberCount;
+          const when = (d.timestamp && typeof d.timestamp.toDate === 'function')
+            ? d.timestamp.toDate().toLocaleString()
+            : 'Just now';
 
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td data-label="Name">${escapeHtml(d.name)}</td>
             <td data-label="Phone">${escapeHtml(d.phone)}</td>
-            <td data-label="Members"><span class="pill">${d.members}</span></td>
+            <td data-label="Members"><span class="pill">${memberCount}</span></td>
             <td data-label="Submitted">${when}</td>
             <td data-label=""><button class="del" data-id="${doc.id}">Remove</button></td>
           `;
           rowsEl.appendChild(tr);
-        });
+          rendered++;
+        }catch(rowErr){
+          console.error('Skipped a malformed document:', doc.id, rowErr);
+        }
+      });
 
-        totalEntriesEl.textContent = snap.size;
-        totalMembersEl.textContent = totalMembers;
+      totalEntriesEl.textContent = rendered;
+      totalMembersEl.textContent = totalMembers;
 
-        document.querySelectorAll('.del').forEach(btn => {
-          btn.addEventListener('click', async () => {
-            if(confirm('Remove this confirmation?')){
-              await db.collection('confirmations').doc(btn.dataset.id).delete();
-              loadData();
-            }
-          });
+      document.querySelectorAll('.del').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if(confirm('Remove this confirmation?')){
+            await db.collection('confirmations').doc(btn.dataset.id).delete();
+            loadData();
+          }
         });
-      }catch(err){
-        console.error(err);
-        emptyState.style.display = 'block';
-        emptyState.textContent = 'Could not load data. Check your Firebase setup and internet connection.';
-      }
+      });
     }
 
     function escapeHtml(str){
