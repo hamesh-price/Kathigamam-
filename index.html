@@ -1,12 +1,47 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kathirgamam Pada Yatra — Confirm Attendance</title>
 <link rel="stylesheet" href="style.css">
+<style>
+  .admin-link{
+    position:fixed;
+    top:18px;
+    right:18px;
+    z-index:100;
+    display:inline-block;
+    padding:8px 16px;
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    font-weight:600;
+    color:var(--maroon);
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:999px;
+    text-decoration:none;
+    box-shadow:0 1px 3px rgba(80,50,20,0.08);
+    transition:background .15s, transform .1s;
+  }
+  .admin-link:hover{
+    background:#FBF0DF;
+  }
+  .admin-link:active{
+    transform:scale(.97);
+  }
+  @media (max-width:480px){
+    .admin-link{
+      top:10px;
+      right:10px;
+      padding:7px 13px;
+      font-size:12px;
+    }
+  }
+</style>
 </head>
 <body>
+  <a href="admin.html" class="admin-link">Admin</a>
   <div class="wrap">
     <p class="eyebrow">Kathirgamam Pada Yatra</p>
     <h1>Confirm your attendance</h1>
@@ -20,7 +55,7 @@
       <form id="confirmForm">
         <div class="field">
           <label for="name">Full name</label>
-          <input type="text" id="name" placeholder="e.g. Hamesh" required>
+          <input type="text" id="name" placeholder="e.g. Hamesh Kumar" required>
         </div>
         <div class="field">
           <label for="phone">Contact number</label>
@@ -79,43 +114,6 @@
         submitBtn.disabled = false;
         submitBtn.textContent = 'Confirm attendance';
       }
-
-<style>
-  .admin-link{
-    position:fixed;
-    top:18px;
-    right:18px;
-    z-index:100;
-    display:inline-block;
-    padding:8px 16px;
-    font-family:'Inter',sans-serif;
-    font-size:13px;
-    font-weight:600;
-    color:var(--maroon);
-    background:#fff;
-    border:1px solid var(--border);
-    border-radius:999px;
-    text-decoration:none;
-    box-shadow:0 1px 3px rgba(80,50,20,0.08);
-    transition:background .15s, transform .1s;
-  }
-  .admin-link:hover{
-    background:#FBF0DF;
-  }
-  .admin-link:active{
-    transform:scale(.97);
-  }
-  @media (max-width:480px){
-    .admin-link{
-      top:10px;
-      right:10px;
-      padding:7px 13px;
-      font-size:12px;
-    }
-  }
-</style>
-    <a href="admin.html" class="admin-link">Admin</a>
-      
     });
   </script>
 </body>
